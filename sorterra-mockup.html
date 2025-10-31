@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorterra - Intelligent File Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .activity-item {
+            transition: background-color 0.2s;
+        }
+
+        .activity-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .search-result {
+            transition: all 0.2s;
+        }
+
+        .search-result:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-100">
+
+    <!-- Onboarding View -->
+    <div id="onboarding-view" class="view active">
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="card max-w-2xl w-full p-8">
+                <div class="text-center mb-8">
+                    <div class="flex items-center justify-center mb-4">
+                        <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                        </svg>
+                        <h1 class="text-3xl font-bold text-slate-800 ml-3">Sorterra</h1>
+                    </div>
+                    <p class="text-lg text-slate-600">Welcome! Let's connect to your SharePoint and set up your first sorting recipe.</p>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="border-l-4 border-blue-600 bg-blue-50 p-4">
+                        <div class="flex items-start">
+                            <svg class="w-6 h-6 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                            <div class="ml-3">
+                                <p class="text-sm font-semibold text-blue-900">Secure Connection</p>
+                                <p class="text-sm text-blue-800 mt-1">Your data is secured with end-to-end encryption and never sent to public AI models.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-slate-800">Step 1: Connect to SharePoint</h3>
+                        <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                            <label class="block text-sm font-medium text-slate-700 mb-2">SharePoint URL</label>
+                            <input
+                                type="text"
+                                placeholder="https://yourcompany.sharepoint.com"
+                                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                value="https://cencore.sharepoint.com"
+                            >
+                        </div>
+
+                        <h3 class="text-lg font-semibold text-slate-800 mt-6">Step 2: Create Your First Sorting Recipe</h3>
+                        <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">What type of files should be sorted?</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g., Invoices, Contracts, Reports"
+                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                    value="Invoices"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Where should they go?</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g., /Finance/Invoices/[Year]/"
+                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                    value="/Finance/Invoices/[Year]/"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        onclick="completeOnboarding()"
+                        class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        Connect & Start Organizing
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard View -->
+    <div id="dashboard-view" class="view">
+        <div class="flex h-screen">
+            <!-- Sidebar -->
+            <div class="w-64 bg-slate-800 text-white flex flex-col">
+                <div class="p-6 border-b border-slate-700">
+                    <div class="flex items-center">
+                        <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                        </svg>
+                        <h1 class="text-xl font-bold ml-2">Sorterra</h1>
+                    </div>
+                </div>
+
+                <nav class="flex-1 p-4 space-y-2">
+                    <a href="#" onclick="showView('dashboard-view'); return false;" class="flex items-center px-4 py-3 bg-slate-700 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        <span class="ml-3 font-medium">Dashboard</span>
+                    </a>
+                    <a href="#" onclick="showView('recipes-view'); return false;" class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        <span class="ml-3">Recipes</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span class="ml-3">Settings</span>
+                    </a>
+                </nav>
+
+                <div class="p-4 border-t border-slate-700">
+                    <div class="flex items-center px-4 py-3 bg-slate-700 rounded-lg">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold">
+                            CC
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium">CenCore Legal</p>
+                            <p class="text-xs text-slate-400">Connected</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 overflow-auto">
+                <div class="p-8">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-8">Dashboard</h2>
+
+                    <!-- Search Bar -->
+                    <div class="card p-6 mb-8">
+                        <div class="relative">
+                            <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            <input
+                                type="text"
+                                id="search-input"
+                                placeholder="Search for information or ask a question..."
+                                class="w-full pl-12 pr-4 py-4 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-blue-600 text-slate-800"
+                                onkeypress="if(event.key === 'Enter') performSearch()"
+                            >
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <button onclick="quickSearch('Find all contracts with CenCore')" class="px-3 py-1.5 bg-slate-100 text-slate-700 text-sm rounded-full hover:bg-slate-200 transition-colors">
+                                Find all contracts with CenCore
+                            </button>
+                            <button onclick="quickSearch('Show me Q3 financial reports')" class="px-3 py-1.5 bg-slate-100 text-slate-700 text-sm rounded-full hover:bg-slate-200 transition-colors">
+                                Show me Q3 financial reports
+                            </button>
+                            <button onclick="quickSearch('What documents mention security clearances?')" class="px-3 py-1.5 bg-slate-100 text-slate-700 text-sm rounded-full hover:bg-slate-200 transition-colors">
+                                What documents mention security clearances?
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Activity Feed -->
+                        <div class="card p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-slate-800">Recent Activity</h3>
+                                <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Live</span>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="activity-item p-3 border-l-4 border-blue-600 bg-blue-50 rounded">
+                                    <p class="text-sm font-medium text-slate-800">Organized 15 files</p>
+                                    <p class="text-xs text-slate-600 mt-1">Sorted invoices into /Finance/Invoices/2024/</p>
+                                    <p class="text-xs text-slate-500 mt-1">2 minutes ago</p>
+                                </div>
+                                <div class="activity-item p-3 border-l-4 border-green-600 bg-green-50 rounded">
+                                    <p class="text-sm font-medium text-slate-800">Classified 8 contracts</p>
+                                    <p class="text-xs text-slate-600 mt-1">Moved to /Legal/Contracts/Active/</p>
+                                    <p class="text-xs text-slate-500 mt-1">15 minutes ago</p>
+                                </div>
+                                <div class="activity-item p-3 border-l-4 border-purple-600 bg-purple-50 rounded">
+                                    <p class="text-sm font-medium text-slate-800">Renamed 22 files</p>
+                                    <p class="text-xs text-slate-600 mt-1">Applied naming convention: [Date]_[Type]_[Client]</p>
+                                    <p class="text-xs text-slate-500 mt-1">1 hour ago</p>
+                                </div>
+                                <div class="activity-item p-3 border-l-4 border-amber-600 bg-amber-50 rounded">
+                                    <p class="text-sm font-medium text-slate-800">Detected duplicates</p>
+                                    <p class="text-xs text-slate-600 mt-1">Found 5 duplicate files across folders</p>
+                                    <p class="text-xs text-slate-500 mt-1">2 hours ago</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Smart Suggestions -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold text-slate-800 mb-4">Smart Suggestions</h3>
+                            <div class="space-y-3">
+                                <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                                    <div class="flex items-start">
+                                        <svg class="w-5 h-5 text-amber-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                        </svg>
+                                        <div class="ml-3 flex-1">
+                                            <p class="text-sm font-medium text-slate-800">Found 12 duplicate files</p>
+                                            <p class="text-xs text-slate-600 mt-1">Review and remove duplicates to save 45 MB</p>
+                                            <button class="mt-2 text-sm text-blue-600 font-medium hover:text-blue-700">Review</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                                    <div class="flex items-start">
+                                        <svg class="w-5 h-5 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                        </svg>
+                                        <div class="ml-3 flex-1">
+                                            <p class="text-sm font-medium text-slate-800">Sensitive file detected: Payroll_2024.xlsx</p>
+                                            <p class="text-xs text-slate-600 mt-1">Currently accessible by 15 users</p>
+                                            <button class="mt-2 text-sm text-blue-600 font-medium hover:text-blue-700">Review Access</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <div class="flex items-start">
+                                        <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                        </svg>
+                                        <div class="ml-3 flex-1">
+                                            <p class="text-sm font-medium text-slate-800">New sorting recipe suggested</p>
+                                            <p class="text-xs text-slate-600 mt-1">HR documents could be auto-sorted by quarter</p>
+                                            <button class="mt-2 text-sm text-blue-600 font-medium hover:text-blue-700">Create Recipe</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+                        <div class="card p-4">
+                            <p class="text-sm text-slate-600">Files Organized</p>
+                            <p class="text-2xl font-bold text-slate-800 mt-1">1,247</p>
+                        </div>
+                        <div class="card p-4">
+                            <p class="text-sm text-slate-600">Active Recipes</p>
+                            <p class="text-2xl font-bold text-slate-800 mt-1">8</p>
+                        </div>
+                        <div class="card p-4">
+                            <p class="text-sm text-slate-600">Time Saved</p>
+                            <p class="text-2xl font-bold text-slate-800 mt-1">32 hrs</p>
+                        </div>
+                        <div class="card p-4">
+                            <p class="text-sm text-slate-600">Storage Optimized</p>
+                            <p class="text-2xl font-bold text-slate-800 mt-1">2.4 GB</p>
+                        </div>
+                    </div>
+
+                    <!-- Security Placard -->
+                    <div class="card p-4 mt-6 bg-slate-50 border border-slate-200">
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                            <p class="ml-3 text-sm text-slate-700">Your data is secured with end-to-end encryption and never sent to public AI models.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Results View -->
+    <div id="search-results-view" class="view">
+        <div class="flex h-screen">
+            <!-- Sidebar (same as dashboard) -->
+            <div class="w-64 bg-slate-800 text-white flex flex-col">
+                <div class="p-6 border-b border-slate-700">
+                    <div class="flex items-center">
+                        <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                        </svg>
+                        <h1 class="text-xl font-bold ml-2">Sorterra</h1>
+                    </div>
+                </div>
+
+                <nav class="flex-1 p-4 space-y-2">
+                    <a href="#" onclick="showView('dashboard-view'); return false;" class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        <span class="ml-3 font-medium">Dashboard</span>
+                    </a>
+                    <a href="#" onclick="showView('recipes-view'); return false;" class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        <span class="ml-3">Recipes</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span class="ml-3">Settings</span>
+                    </a>
+                </nav>
+
+                <div class="p-4 border-t border-slate-700">
+                    <div class="flex items-center px-4 py-3 bg-slate-700 rounded-lg">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold">
+                            CC
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium">CenCore Legal</p>
+                            <p class="text-xs text-slate-400">Connected</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 overflow-auto">
+                <div class="p-8">
+                    <!-- Search Bar -->
+                    <div class="card p-6 mb-6">
+                        <div class="relative">
+                            <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            <input
+                                type="text"
+                                id="search-query-display"
+                                class="w-full pl-12 pr-4 py-4 border-2 border-blue-600 rounded-lg focus:outline-none focus:border-blue-600 text-slate-800"
+                                value="Find all contracts with CenCore"
+                                readonly
+                            >
+                        </div>
+                    </div>
+
+                    <!-- AI Summary -->
+                    <div class="card p-6 mb-6 bg-blue-50 border border-blue-200">
+                        <div class="flex items-start">
+                            <svg class="w-6 h-6 text-blue-600 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                            <div class="ml-4 flex-1">
+                                <h3 class="text-lg font-semibold text-slate-800 mb-2">AI Summary</h3>
+                                <p class="text-slate-700">I found <strong>3 active contracts</strong> related to CenCore in your SharePoint. These contracts are all located in <code class="bg-white px-2 py-0.5 rounded text-sm">/Legal/Contracts/Active/</code>. The most recent contract was signed on <strong>March 15, 2024</strong> and covers security services for federal contracts. Two of the contracts contain clauses related to security clearances and data handling protocols.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search Results -->
+                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Documents Found (3)</h3>
+                    <div class="space-y-4">
+                        <div class="search-result card p-5">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-start flex-1">
+                                    <svg class="w-8 h-8 text-red-600 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <div class="ml-4 flex-1">
+                                        <h4 class="font-semibold text-slate-800">CenCore_MSA_2024-03-15.pdf</h4>
+                                        <p class="text-sm text-slate-600 mt-1">/Legal/Contracts/Active/2024/</p>
+                                        <p class="text-sm text-slate-700 mt-2">Master Service Agreement between CenCore and vendor covering security services for federal government contracts. Includes clauses on security clearances, data handling, and compliance requirements...</p>
+                                        <div class="flex items-center gap-4 mt-3">
+                                            <span class="text-xs text-slate-500">Modified: Mar 15, 2024</span>
+                                            <span class="text-xs text-slate-500">Size: 2.4 MB</span>
+                                            <span class="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded">Active</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="ml-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                    Open
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="search-result card p-5">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-start flex-1">
+                                    <svg class="w-8 h-8 text-red-600 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <div class="ml-4 flex-1">
+                                        <h4 class="font-semibold text-slate-800">CenCore_SOW_2023-11-03.pdf</h4>
+                                        <p class="text-sm text-slate-600 mt-1">/Legal/Contracts/Active/2023/</p>
+                                        <p class="text-sm text-slate-700 mt-2">Statement of Work detailing specific deliverables and timelines for CenCore security consulting engagement. Contains security clearance requirements and data protection protocols...</p>
+                                        <div class="flex items-center gap-4 mt-3">
+                                            <span class="text-xs text-slate-500">Modified: Nov 3, 2023</span>
+                                            <span class="text-xs text-slate-500">Size: 1.8 MB</span>
+                                            <span class="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded">Active</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="ml-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                    Open
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="search-result card p-5">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-start flex-1">
+                                    <svg class="w-8 h-8 text-red-600 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <div class="ml-4 flex-1">
+                                        <h4 class="font-semibold text-slate-800">CenCore_NDA_2023-08-12.pdf</h4>
+                                        <p class="text-sm text-slate-600 mt-1">/Legal/Contracts/Active/2023/</p>
+                                        <p class="text-sm text-slate-700 mt-2">Non-Disclosure Agreement establishing confidentiality terms for CenCore engagement. Covers protection of sensitive information and federal contract requirements...</p>
+                                        <div class="flex items-center gap-4 mt-3">
+                                            <span class="text-xs text-slate-500">Modified: Aug 12, 2023</span>
+                                            <span class="text-xs text-slate-500">Size: 890 KB</span>
+                                            <span class="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded">Active</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="ml-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                    Open
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="showView('dashboard-view')" class="mt-6 px-6 py-2 bg-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-300 transition-colors">
+                        Back to Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recipes View -->
+    <div id="recipes-view" class="view">
+        <div class="flex h-screen">
+            <!-- Sidebar -->
+            <div class="w-64 bg-slate-800 text-white flex flex-col">
+                <div class="p-6 border-b border-slate-700">
+                    <div class="flex items-center">
+                        <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                        </svg>
+                        <h1 class="text-xl font-bold ml-2">Sorterra</h1>
+                    </div>
+                </div>
+
+                <nav class="flex-1 p-4 space-y-2">
+                    <a href="#" onclick="showView('dashboard-view'); return false;" class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        <span class="ml-3 font-medium">Dashboard</span>
+                    </a>
+                    <a href="#" onclick="showView('recipes-view'); return false;" class="flex items-center px-4 py-3 bg-slate-700 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        <span class="ml-3">Recipes</span>
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span class="ml-3">Settings</span>
+                    </a>
+                </nav>
+
+                <div class="p-4 border-t border-slate-700">
+                    <div class="flex items-center px-4 py-3 bg-slate-700 rounded-lg">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold">
+                            CC
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium">CenCore Legal</p>
+                            <p class="text-xs text-slate-400">Connected</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 overflow-auto">
+                <div class="p-8">
+                    <div class="flex items-center justify-between mb-8">
+                        <h2 class="text-3xl font-bold text-slate-800">Sorting Recipes</h2>
+                        <button onclick="toggleNewRecipe()" class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                            + New Recipe
+                        </button>
+                    </div>
+
+                    <p class="text-slate-600 mb-6">Recipes define how Sorterra automatically organizes your files. Create custom rules for different file types.</p>
+
+                    <!-- New Recipe Form (Hidden by default) -->
+                    <div id="new-recipe-form" class="card p-6 mb-6" style="display: none;">
+                        <h3 class="text-lg font-semibold text-slate-800 mb-4">Create New Recipe</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Recipe Name</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g., Sort HR Documents"
+                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">File Type or Pattern</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g., HR documents, Employee records"
+                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Destination Path</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g., /HR/Documents/[Year]/[Quarter]/"
+                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                >
+                                <p class="text-xs text-slate-500 mt-1">Use [Year], [Month], [Quarter], [Type] as dynamic placeholders</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Additional Instructions (Optional)</label>
+                                <textarea
+                                    rows="3"
+                                    placeholder="Any special handling or naming conventions..."
+                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                ></textarea>
+                            </div>
+                            <div class="flex gap-3">
+                                <button onclick="toggleNewRecipe()" class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                    Create Recipe
+                                </button>
+                                <button onclick="toggleNewRecipe()" class="px-4 py-2 bg-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-300 transition-colors">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Recipes -->
+                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Active Recipes (8)</h3>
+                    <div class="space-y-4">
+                        <div class="card p-5">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3">
+                                        <h4 class="font-semibold text-slate-800">Invoice Sorting</h4>
+                                        <span class="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded">Active</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600 mt-2">Files tagged as "Invoice" → <code class="bg-slate-100 px-2 py-0.5 rounded text-sm">/Finance/Invoices/[Year]/</code></p>
+                                    <div class="flex items-center gap-4 mt-3">
+                                        <span class="text-xs text-slate-500">Created: Oct 15, 2024</span>
+                                        <span class="text-xs text-slate-500">Files processed: 347</span>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors">Edit</button>
+                                    <button class="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded transition-colors">Disable</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card p-5">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3">
+                                        <h4 class="font-semibold text-slate-800">Contract Management</h4>
+                                        <span class="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded">Active</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600 mt-2">Contracts → <code class="bg-slate-100 px-2 py-0.5 rounded text-sm">/Legal/Contracts/[Status]/[Year]/</code></p>
+                                    <p class="text-xs text-slate-500 mt-2">Additional rule: Classify as "Active" or "Expired" based on contract dates</p>
+                                    <div class="flex items-center gap-4 mt-3">
+                                        <span class="text-xs text-slate-500">Created: Oct 12, 2024</span>
+                                        <span class="text-xs text-slate-500">Files processed: 89</span>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors">Edit</button>
+                                    <button class="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded transition-colors">Disable</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card p-5">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3">
+                                        <h4 class="font-semibold text-slate-800">HR Documents</h4>
+                                        <span class="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded">Active</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600 mt-2">HR-related files → <code class="bg-slate-100 px-2 py-0.5 rounded text-sm">/HR/[Type]/[Year]/</code></p>
+                                    <p class="text-xs text-slate-500 mt-2">Additional rule: Apply restricted access to payroll and benefits documents</p>
+                                    <div class="flex items-center gap-4 mt-3">
+                                        <span class="text-xs text-slate-500">Created: Oct 8, 2024</span>
+                                        <span class="text-xs text-slate-500">Files processed: 156</span>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors">Edit</button>
+                                    <button class="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded transition-colors">Disable</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card p-5">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3">
+                                        <h4 class="font-semibold text-slate-800">Security Clearances</h4>
+                                        <span class="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded">Active</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600 mt-2">Clearance documents → <code class="bg-slate-100 px-2 py-0.5 rounded text-sm">/Security/Clearances/[Employee]/</code></p>
+                                    <p class="text-xs text-slate-500 mt-2">Additional rule: Mark as highly confidential and limit access to legal team only</p>
+                                    <div class="flex items-center gap-4 mt-3">
+                                        <span class="text-xs text-slate-500">Created: Oct 5, 2024</span>
+                                        <span class="text-xs text-slate-500">Files processed: 42</span>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors">Edit</button>
+                                    <button class="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded transition-colors">Disable</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card p-5">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3">
+                                        <h4 class="font-semibold text-slate-800">Project Reports</h4>
+                                        <span class="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded">Active</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600 mt-2">Reports → <code class="bg-slate-100 px-2 py-0.5 rounded text-sm">/Projects/[ProjectName]/Reports/[Quarter]/</code></p>
+                                    <div class="flex items-center gap-4 mt-3">
+                                        <span class="text-xs text-slate-500">Created: Sep 28, 2024</span>
+                                        <span class="text-xs text-slate-500">Files processed: 203</span>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors">Edit</button>
+                                    <button class="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded transition-colors">Disable</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card p-5">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3">
+                                        <h4 class="font-semibold text-slate-800">Client Presentations</h4>
+                                        <span class="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded">Active</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600 mt-2">Presentation files → <code class="bg-slate-100 px-2 py-0.5 rounded text-sm">/Clients/[ClientName]/Presentations/[Year]/</code></p>
+                                    <div class="flex items-center gap-4 mt-3">
+                                        <span class="text-xs text-slate-500">Created: Sep 20, 2024</span>
+                                        <span class="text-xs text-slate-500">Files processed: 78</span>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors">Edit</button>
+                                    <button class="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded transition-colors">Disable</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card p-5">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3">
+                                        <h4 class="font-semibold text-slate-800">Meeting Notes</h4>
+                                        <span class="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded">Active</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600 mt-2">Meeting notes → <code class="bg-slate-100 px-2 py-0.5 rounded text-sm">/Meetings/[Year]/[Month]/</code></p>
+                                    <p class="text-xs text-slate-500 mt-2">Additional rule: Extract meeting date from content and use for filing</p>
+                                    <div class="flex items-center gap-4 mt-3">
+                                        <span class="text-xs text-slate-500">Created: Sep 15, 2024</span>
+                                        <span class="text-xs text-slate-500">Files processed: 124</span>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors">Edit</button>
+                                    <button class="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded transition-colors">Disable</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card p-5">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3">
+                                        <h4 class="font-semibold text-slate-800">Compliance Documents</h4>
+                                        <span class="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded">Active</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600 mt-2">Compliance files → <code class="bg-slate-100 px-2 py-0.5 rounded text-sm">/Compliance/[Type]/[Year]/</code></p>
+                                    <p class="text-xs text-slate-500 mt-2">Additional rule: Flag documents requiring annual review</p>
+                                    <div class="flex items-center gap-4 mt-3">
+                                        <span class="text-xs text-slate-500">Created: Sep 10, 2024</span>
+                                        <span class="text-xs text-slate-500">Files processed: 67</span>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors">Edit</button>
+                                    <button class="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded transition-colors">Disable</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showView(viewId) {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.remove('active');
+            });
+
+            // Show selected view
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        function completeOnboarding() {
+            showView('dashboard-view');
+        }
+
+        function performSearch() {
+            const searchInput = document.getElementById('search-input');
+            const query = searchInput.value;
+
+            if (query.trim()) {
+                document.getElementById('search-query-display').value = query;
+                showView('search-results-view');
+            }
+        }
+
+        function quickSearch(query) {
+            document.getElementById('search-query-display').value = query;
+            showView('search-results-view');
+        }
+
+        function toggleNewRecipe() {
+            const form = document.getElementById('new-recipe-form');
+            if (form.style.display === 'none') {
+                form.style.display = 'block';
+            } else {
+                form.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
